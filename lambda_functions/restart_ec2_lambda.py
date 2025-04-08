@@ -1,29 +1,41 @@
 import boto3
-import json
+import time
 
-ec2 = boto3.client("ec2")
+ec2_client = boto3.client("ec2", region_name="eu-central-1")
 
 def lambda_handler(event, context):
-    print("Event received:", json.dumps(event))
-
     instance_id = event["detail"]["instance-id"]
+    print(f"Event received: {event}")
     print(f"Restarting EC2 instance: {instance_id}")
 
     try:
-        ec2.stop_instances(InstanceIds=[instance_id])
-        print(f"Instance {instance_id} stopped successfully.")
+        # stop the instance
+        ec2_client.stop_instances(InstanceIds=[instance_id])
+        print(f"Instance {instance_id} stopping...")
 
-        ec2.start_instances(InstanceIds=[instance_id])
+        # wait for the instance to fully stop
+        while True:
+            instance_status = ec2_client.describe_instances(InstanceIds=[instance_id])
+            state = instance_status["Reservations"][0]["Instances"][0]["State"]["Name"]
+            print(f"Current state: {state}")
+
+            if state == "stopped":
+                print(f"Instance {instance_id} has stopped.")
+                break
+            time.sleep(5)  # wait 5 sec before checking again
+
+        # start the instance
+        ec2_client.start_instances(InstanceIds=[instance_id])
         print(f"Instance {instance_id} started successfully.")
 
         return {
             "statusCode": 200,
-            "body": json.dumps(f"Instance {instance_id} restarted successfully.")
+            "body": f"Instance {instance_id} restarted successfully."
         }
 
     except Exception as e:
         print(f"Error restarting instance: {str(e)}")
         return {
             "statusCode": 500,
-            "body": json.dumps(f"Error restarting instance: {str(e)}")
+            "body": f"Error restarting instance: {str(e)}"
         }

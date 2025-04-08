@@ -8,6 +8,9 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   statistic           = "Average"
   threshold           = 80
   alarm_description   = "Triggers when CPU usage exceeds 80% for 2 minutes"
-  actions_enabled     = true
-  alarm_actions       = [aws_sns_topic.incident_alerts.arn]
+  dimensions = {
+    InstanceId = "i-09e61f90290c57ed0"
+  }
+  actions_enabled = true
+  alarm_actions   = [aws_sns_topic.incident_alerts.arn]
 }
