@@ -13,12 +13,14 @@ provider "aws" {
 
 module "monitored_environment" {
   source = "./monitored_environment"
+  sns_email     = var.sns_email
+  lambda_bucket = var.lambda_bucket
 }
 
 module "use_case_high_cpu_restart" {
   source    = "./use_cases/high_cpu_restart"
-  sns_email = var.sns_email
-  lambda_bucket  = "lambda-code-bucket-kqrml2"
+  sns_email     = var.sns_email
+  lambda_bucket = var.lambda_bucket
 }
 
 module "use_case_s3_public_access" {
