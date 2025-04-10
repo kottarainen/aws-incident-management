@@ -14,6 +14,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      - name: Write tfvars file
+        run: echo "${{ secrets.TF_VARS }}" > terraform.tfvars
+        working-directory: aws-incident-management
+
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
