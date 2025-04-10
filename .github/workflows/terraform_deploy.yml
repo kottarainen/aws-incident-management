@@ -10,6 +10,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_notification_email: ${{ secrets.TF_VAR_NOTIFICATION_EMAIL }}
+      TF_VAR_lambda_bucket_name: ${{ secrets.TF_VAR_LAMBDA_BUCKET_NAME }}
     strategy:
       matrix:
         path:
@@ -37,7 +40,7 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ${{ matrix.path }}
-        run: terraform plan -var-file="terraform.tfvars"
+        run: terraform plan
 
       - name: Terraform Apply
         working-directory: ${{ matrix.path }}
