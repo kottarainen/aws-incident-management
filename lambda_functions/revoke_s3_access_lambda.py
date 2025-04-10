@@ -9,7 +9,7 @@ def lambda_handler(event, context):
         bucket_name = event['detail']['requestParameters']['bucketName']
         print(f"Checking bucket: {bucket_name}")
 
-        # Set ACL to private
+        # set ACL to private
         s3.put_bucket_acl(
             Bucket=bucket_name,
             ACL='private'

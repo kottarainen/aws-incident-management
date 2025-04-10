@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'lambda_functions/**'
+      - '.github/workflows/lambda-deploy.yml'
 
 jobs:
   upload:
@@ -20,22 +21,23 @@ jobs:
       - name: Install zip
         run: sudo apt install zip
 
-
-      - name: Zip Lambda functions
+      - name: Zip Lambda Functions
         run: |
-          cd lambda_functions
-          for f in *.py; do
-            zip "${f%.py}.zip" "$f"
+          mkdir -p lambda_zips
+          for file in lambda_functions/*.py; do
+            name=$(basename $file .py)
+            zip lambda_zips/${name}.zip $file
           done
   
-      - name: Upload to S3
-        uses: aws-actions/aws-cli@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-          lambda-bucket-name: ${{ secrets.LAMBDA_BUCKET_NAME }}
-          inline-script: |
-            for file in lambda_functions/*.zip; do
-              aws s3 cp $file s3://$lambda-bucket-name/$(basename $file)
-            done        
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        run: |
+          for zipfile in lambda_zips/*.zip; do
+            aws s3 cp "$zipfile" s3://${{ secrets.LAMBDA_BUCKET_NAME }}/$(basename $zipfile)
+          done
