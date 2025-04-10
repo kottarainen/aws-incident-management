@@ -3,7 +3,7 @@ name: Terraform Apply
 on:
   push:
     paths:
-      - 'terraform/**'
+      - 'monitored_environment/**'
       - 'use_cases/**'
       - '.github/workflows/terraform_deploy.yml'
 
@@ -14,20 +14,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init
         run: terraform init
-        working-directory: infrastructure
 
       - name: Terraform Plan
         run: terraform plan
-        working-directory: infrastructure
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-        working-directory: infrastructure
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
