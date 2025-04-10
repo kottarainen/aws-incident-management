@@ -4,5 +4,5 @@
 terraform.tfvars
 .terraform.lock.hcl
 terraform.tfstate
-lambda_functions/*.zip
+*.zip
 *.pem

@@ -9,3 +9,8 @@ variable "aws_region" {
   type        = string
   default     = "eu-central-1"
 }
+
+variable "lambda_bucket" {
+  type = string
+  description = "S3 bucket for Lambda code storage"
+}

@@ -1,0 +1,41 @@
+name: Upload Lambda ZIP to S3
+
+on:
+  push:
+    paths:
+      - 'lambda_functions/**'
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install zip
+        run: sudo apt install zip
+
+
+      - name: Zip Lambda functions
+        run: |
+          cd lambda_functions
+          for f in *.py; do
+            zip "${f%.py}.zip" "$f"
+          done
+  
+      - name: Upload to S3
+        uses: aws-actions/aws-cli-action@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+          lambda-bucket-name: ${{ secrets.LAMBDA_BUCKET_NAME }}
+          inline-script: |
+            for file in lambda_functions/*.zip; do
+              aws s3 cp $file s3://$lambda-bucket-name/$(basename $file)
+            done        
