@@ -16,8 +16,6 @@ jobs:
 
       - name: Write tfvars file
         run: echo "${{ secrets.TF_VARS }}" > terraform.tfvars
-        working-directory: aws-incident-management
-
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
