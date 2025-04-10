@@ -11,6 +11,6 @@ variable "aws_region" {
 }
 
 variable "lambda_bucket" {
-  description = "S3 bucket name where Lambda zips are stored"
+  description = "S3 bucket for Lambda code storage"
   type        = string
 }
