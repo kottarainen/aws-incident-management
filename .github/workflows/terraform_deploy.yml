@@ -8,10 +8,17 @@ on:
       - '.github/workflows/terraform_deploy.yml'
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path:
+          - monitored_environment
+          - use_cases/high_cpu_restart
+          - use_cases/s3_public_access_revoke
+
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Configure AWS credentials
@@ -25,10 +32,13 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init
+        working-directory: ${{ matrix.path }}
         run: terraform init
 
       - name: Terraform Plan
+        working-directory: ${{ matrix.path }}
         run: terraform plan -var-file="terraform.tfvars"
 
       - name: Terraform Apply
+        working-directory: ${{ matrix.path }}
         run: terraform apply -auto-approve
