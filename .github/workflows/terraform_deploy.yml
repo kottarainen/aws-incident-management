@@ -11,8 +11,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      TF_VAR_notification_email: ${{ secrets.TF_VAR_NOTIFICATION_EMAIL }}
-      TF_VAR_lambda_bucket_name: ${{ secrets.TF_VAR_LAMBDA_BUCKET_NAME }}
+      TF_VAR_sns_email: ${{ secrets.TF_VAR_SNS_EMAIL }}
+      TF_VAR_lambda_bucket: ${{ secrets.TF_VAR_LAMBDA_BUCKET }}
     strategy:
       matrix:
         path:
