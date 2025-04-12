@@ -1,7 +1,9 @@
 import json
 import boto3
+import os
 
 s3 = boto3.client('s3')
+sns = boto3.client('sns')
 
 def lambda_handler(event, context):
     print("Received event:", json.dumps(event))
@@ -10,35 +12,61 @@ def lambda_handler(event, context):
         bucket_name = event['detail']['requestParameters']['bucketName']
         print(f"Checking bucket: {bucket_name}")
 
-        # Check if the ACL grants public access
+        # Check if this bucket was already remediated
+        try:
+            tags = s3.get_bucket_tagging(Bucket=bucket_name)['TagSet']
+            for tag in tags:
+                if tag['Key'] == 'AutoRemediated' and tag['Value'] == 'true':
+                    print("Bucket already auto-remediated. Skipping.")
+                    return {
+                        'statusCode': 200,
+                        'body': "Already remediated."
+                    }
+        except s3.exceptions.ClientError as e:
+            if e.response['Error']['Code'] != 'NoSuchTagSet':
+                raise
+
+        # Check if public access is granted
         grants = event['detail']['requestParameters'].get('AccessControlPolicy', {}).get('Grants', [])
         for grant in grants:
             grantee = grant.get('Grantee', {})
             if grantee.get('URI') == "http://acs.amazonaws.com/groups/global/AllUsers":
-                print("Public access detected. Proceeding to revoke.")
-                break
-        else:
-            print("No public access detected. Skipping action.")
-            return {
-                'statusCode': 200,
-                'body': "No public ACL found, no action taken."
-            }
+                print("Public access detected. Revoking...")
 
-        # Revoke public access by setting ACL to private
-        s3.put_bucket_acl(
-            Bucket=bucket_name,
-            ACL='private'
-        )
+                # Set ACL to private
+                s3.put_bucket_acl(Bucket=bucket_name, ACL='private')
 
-        print(f"Bucket {bucket_name} ACL changed to private.")
+                # Tag the bucket to avoid infinite loop
+                s3.put_bucket_tagging(
+                    Bucket=bucket_name,
+                    Tagging={
+                        'TagSet': [
+                            {'Key': 'AutoRemediated', 'Value': 'true'}
+                        ]
+                    }
+                )
+
+                # Send SNS notification
+                sns.publish(
+                    TopicArn=os.environ['SNS_TOPIC_ARN'],
+                    Subject="S3 Public Access Revoked",
+                    Message=f"S3 bucket {bucket_name} was made public and access was automatically revoked."
+                )
+
+                return {
+                    'statusCode': 200,
+                    'body': f"Bucket {bucket_name} access changed to private and notification sent."
+                }
+
+        print("No public access found. Nothing to do.")
         return {
             'statusCode': 200,
-            'body': f"Bucket {bucket_name} access changed to private."
+            'body': "No public grants found."
         }
 
     except Exception as e:
         print(f"Error: {str(e)}")
         return {
             'statusCode': 500,
-            'body': f"Failed to change bucket ACL: {str(e)}"
+            'body': f"Error occurred: {str(e)}"
         }
