@@ -12,5 +12,6 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
     InstanceId = "i-09e61f90290c57ed0"
   }
   actions_enabled = true
-  alarm_actions   = [aws_sns_topic.incident_alerts.arn]
+  #alarm_actions   = [aws_sns_topic.incident_alerts.arn]
+  alarm_actions = [var.sns_topic_arn]
 }

@@ -53,6 +53,7 @@ resource "aws_lambda_function" "revoke_s3_public_access" {
   environment {
       variables = {
       REGION = var.aws_region
+      SNS_TOPIC_ARN  = var.sns_topic_arn
       }
     }
 }

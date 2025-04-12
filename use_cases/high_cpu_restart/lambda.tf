@@ -15,6 +15,7 @@ resource "aws_lambda_function" "restart_ec2" {
   environment {
     variables = {
       REGION = var.aws_region
+      SNS_TOPIC_ARN  = var.sns_topic_arn
     }
   }
 }

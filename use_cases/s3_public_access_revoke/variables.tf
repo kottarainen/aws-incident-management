@@ -14,3 +14,8 @@ variable "lambda_bucket" {
   description = "S3 bucket for Lambda code storage"
   type        = string
 }
+
+variable "sns_topic_arn" {
+  description = "ARN of the shared SNS topic for incident alerts"
+  type        = string
+}

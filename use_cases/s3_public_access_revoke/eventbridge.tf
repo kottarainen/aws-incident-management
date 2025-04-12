@@ -4,8 +4,8 @@ resource "aws_cloudwatch_event_rule" "s3_public_acl_change" {
   event_pattern = jsonencode({
     source = ["aws.s3"],
     "detail-type" = ["AWS API Call via CloudTrail"],
-    detail = {
-      eventName = ["PutBucketAcl", "PutBucketPolicy"]
+    "detail": {
+      "eventName": ["PutBucketAcl"]
     }
   })
 }

@@ -64,7 +64,8 @@ resource "aws_iam_role_policy_attachment" "lambda_logs_attach" {
 }
 
 resource "aws_sns_topic_policy" "default" {
-  arn = aws_sns_topic.incident_alerts.arn
+  #arn = aws_sns_topic.incident_alerts.arn
+  arn      = var.sns_topic_arn
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -72,7 +73,8 @@ resource "aws_sns_topic_policy" "default" {
         Effect    = "Allow"
         Principal = "*"
         Action    = "SNS:Publish"
-        Resource  = aws_sns_topic.incident_alerts.arn
+        #Resource  = aws_sns_topic.incident_alerts.arn
+        Resource = var.sns_topic_arn
         Condition = {
           ArnEquals = {
             "aws:SourceArn" = aws_cloudwatch_metric_alarm.high_cpu.arn
@@ -88,5 +90,6 @@ resource "aws_lambda_permission" "allow_sns" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.restart_ec2.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.incident_alerts.arn
+  #source_arn    = aws_sns_topic.incident_alerts.arn
+  source_arn = var.sns_topic_arn
 }
