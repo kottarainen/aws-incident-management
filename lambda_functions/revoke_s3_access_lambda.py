@@ -27,7 +27,11 @@ def lambda_handler(event, context):
                 raise
 
         # Check if public access is granted
-        grants = event['detail']['requestParameters'].get('AccessControlPolicy', {}).get('Grant', [])
+        grants = event['detail']['requestParameters'] \
+            .get('AccessControlPolicy', {}) \
+            .get('AccessControlList', {}) \
+            .get('Grant', [])
+
         for grant in grants:
             grantee = grant.get('Grantee', {})
             if grantee.get('URI') == "http://acs.amazonaws.com/groups/global/AllUsers":
