@@ -7,9 +7,6 @@ resource "aws_cloudwatch_event_rule" "s3_public_acl_change" {
     detail = {
       eventName = ["PutBucketAcl", "PutBucketPolicy"]
     }
-    "requestParameters": {
-      "ACL": ["public-read", "public-read-write"]
-    }
   })
 }
 
