@@ -26,7 +26,9 @@ jobs:
           mkdir -p lambda_zips
           for file in lambda_functions/*.py; do
             name=$(basename $file .py)
-            zip lambda_zips/${name}.zip $file
+            cp "$file" "./${name}.py"
+            zip "lambda_zips/${name}.zip" "${name}.py"
+            rm "${name}.py"
           done
   
       - name: Configure AWS Credentials
@@ -39,5 +41,5 @@ jobs:
       - name: Upload to S3
         run: |
           for zipfile in lambda_zips/*.zip; do
-            aws s3 cp "$zipfile" s3://${{ secrets.LAMBDA_BUCKET_NAME }}/$(basename $zipfile)
+            aws s3 cp "$zipfile" s3://${{ secrets.LAMBDA_BUCKET_NAME }}/$(basename "$zipfile")
           done
