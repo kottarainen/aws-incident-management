@@ -33,10 +33,10 @@ def lambda_handler(event, context):
             if grantee.get('URI') == "http://acs.amazonaws.com/groups/global/AllUsers":
                 print("Public access detected. Revoking...")
 
-                # Set ACL to private
+                # Revoke ACL
                 s3.put_bucket_acl(Bucket=bucket_name, ACL='private')
 
-                # Tag the bucket to avoid infinite loop
+                # Tag the bucket
                 s3.put_bucket_tagging(
                     Bucket=bucket_name,
                     Tagging={
@@ -46,13 +46,14 @@ def lambda_handler(event, context):
                     }
                 )
 
-                # Send SNS notification
+                # Publish SNS notification
                 sns.publish(
                     TopicArn=os.environ['SNS_TOPIC_ARN'],
                     Subject="S3 Public Access Revoked",
                     Message=f"S3 bucket {bucket_name} was made public and access was automatically revoked."
                 )
 
+                print("SNS notification sent.")
                 return {
                     'statusCode': 200,
                     'body': f"Bucket {bucket_name} access changed to private and notification sent."

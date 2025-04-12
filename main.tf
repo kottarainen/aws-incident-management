@@ -15,6 +15,7 @@ module "monitored_environment" {
   source = "./monitored_environment"
   sns_email     = var.sns_email
   lambda_bucket = var.lambda_bucket
+  sns_topic_arn = module.monitored_environment.incident_alerts_topic_arn
 }
 
 module "use_case_high_cpu_restart" {
