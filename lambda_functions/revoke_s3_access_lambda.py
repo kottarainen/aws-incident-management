@@ -6,8 +6,8 @@ from datetime import datetime
 
 s3 = boto3.client('s3')
 sns = boto3.client('sns')
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(os.environ['AUDIT_LOG_TABLE'])
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(os.environ["AUDIT_LOG_TABLE"])
 
 def log_audit_event(bucket_name, status, error=None):
     try:
@@ -19,7 +19,7 @@ def log_audit_event(bucket_name, status, error=None):
             'actionTaken': 'Revoke public S3 ACL',
             'status': status,
             'details': {
-                'region': os.environ.get("AWS_REGION", "unknown")
+                'region': os.environ.get("REGION", "unknown")
             },
             'errorMessage': error or ""
         })
@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         bucket_name = event['detail']['requestParameters']['bucketName']
         print(f"Checking bucket: {bucket_name}")
 
-        # Check if already remediated
+        # Check if this bucket was already remediated
         is_already_remediated = False
         try:
             tags = s3.get_bucket_tagging(Bucket=bucket_name)['TagSet']
@@ -100,7 +100,7 @@ def lambda_handler(event, context):
                     }
                 )
 
-                # Notify via SNS
+                # Publish SNS notification
                 sns.publish(
                     TopicArn=os.environ['SNS_TOPIC_ARN'],
                     Subject="S3 Public Access Revoked",
@@ -115,7 +115,7 @@ def lambda_handler(event, context):
                 }
 
         print("No public access found. Nothing to do.")
-        log_audit_event(bucket_name, "Skipped - no public access found")
+        log_audit_event(bucket_name, "Skipped - no public access")
         return {
             'statusCode': 200,
             'body': "No public grants found."
