@@ -1,22 +1,24 @@
+import json
 import boto3
 import os
 import uuid
 from datetime import datetime
 
-ec2 = boto3.client("ec2", region_name=os.environ.get("REGION", "eu-central-1"))
+ec2 = boto3.client("ec2")
 sns = boto3.client("sns")
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["AUDIT_LOG_TABLE"])
 
-def log_audit_event(instance_id, status, action, error=None):
+def log_audit_event(original_instance_id, new_instance_id, status, error=None):
     try:
         table.put_item(Item={
             'incidentId': str(uuid.uuid4()),
             'useCase': 'EC2FailureRecovery',
-            'resourceId': instance_id,
+            'resourceId': original_instance_id,
             'timestamp': datetime.utcnow().isoformat(),
-            'actionTaken': action,
+            'actionTaken': 'Launched new EC2 instance from original AMI',
             'status': status,
+            'newResourceId': new_instance_id,
             'errorMessage': error or ""
         })
         print("Audit event logged.")
@@ -24,69 +26,57 @@ def log_audit_event(instance_id, status, action, error=None):
         print(f"Failed to log audit event: {str(e)}")
 
 def lambda_handler(event, context):
-    print("Received event:", event)
+    print("Received event:", json.dumps(event))
 
     try:
-        detail = event['detail']
-        instance_id = detail['instance-id']
-        state = detail['state']
-        print(f"Detected instance state change: {instance_id} -> {state}")
+        instance_id = event["detail"]["instance-id"]
+        print(f"Instance {instance_id} is unhealthy. Launching replacement.")
 
-        if state not in ["stopping", "stopped", "terminated"]:
-            print("No recovery needed for this state.")
-            log_audit_event(instance_id, "Ignored", "State not critical")
-            return {
-                'statusCode': 200,
-                'body': "No action taken."
-            }
-
-        # Describe the old instance to get its config
+        # Get AMI and other launch details of the original instance
         response = ec2.describe_instances(InstanceIds=[instance_id])
-        instance = response['Reservations'][0]['Instances'][0]
+        instance = response["Reservations"][0]["Instances"][0]
+        ami_id = instance["ImageId"]
+        instance_type = instance["InstanceType"]
+        key_name = instance.get("KeyName")
+        subnet_id = instance["SubnetId"]
+        security_groups = [sg["GroupId"] for sg in instance["SecurityGroups"]]
 
-        ami = instance['ImageId']
-        instance_type = instance['InstanceType']
-        sg_ids = [sg['GroupId'] for sg in instance['SecurityGroups']]
-        subnet_id = instance['SubnetId']
-        key_name = instance.get('KeyName', None)
-        tags = instance.get('Tags', [])
-
-        print(f"Launching new instance to replace {instance_id}...")
-
-        launch_args = {
-            'ImageId': ami,
-            'InstanceType': instance_type,
-            'SecurityGroupIds': sg_ids,
-            'SubnetId': subnet_id,
-            'TagSpecifications': [{
+        # Launch a new instance with the same configuration
+        new_instance = ec2.run_instances(
+            ImageId=ami_id,
+            InstanceType=instance_type,
+            KeyName=key_name,
+            SubnetId=subnet_id,
+            SecurityGroupIds=security_groups,
+            MinCount=1,
+            MaxCount=1,
+            TagSpecifications=[{
                 'ResourceType': 'instance',
-                'Tags': tags
-            }],
-            'MinCount': 1,
-            'MaxCount': 1
-        }
+                'Tags': [{'Key': 'Name', 'Value': 'RecoveredInstance'}]
+            }]
+        )
 
-        if key_name:
-            launch_args['KeyName'] = key_name
+        new_instance_id = new_instance["Instances"][0]["InstanceId"]
+        print(f"Launched new instance: {new_instance_id}")
 
-        ec2.run_instances(**launch_args)
-
+        # SNS Notification
         sns.publish(
             TopicArn=os.environ['SNS_TOPIC_ARN'],
             Subject="EC2 Instance Recovery",
-            Message=f"A new EC2 instance was launched to replace failed instance {instance_id}."
+            Message=f"EC2 instance {instance_id} was stopped or unhealthy. New instance {new_instance_id} has been launched."
         )
 
-        log_audit_event(instance_id, "Success", "Launched replacement EC2")
+        log_audit_event(instance_id, new_instance_id, "Success")
+
         return {
-            'statusCode': 200,
-            'body': f"Replacement instance launched for {instance_id}"
+            "statusCode": 200,
+            "body": f"New instance {new_instance_id} launched to replace {instance_id}"
         }
 
     except Exception as e:
-        print(f"Error recovering instance: {str(e)}")
-        log_audit_event(instance_id if 'instance_id' in locals() else "unknown", "Failure", "Recovery failed", str(e))
+        print(f"Error: {str(e)}")
+        log_audit_event(instance_id if 'instance_id' in locals() else "unknown", "none", "Failure", str(e))
         return {
-            'statusCode': 500,
-            'body': f"Error: {str(e)}"
+            "statusCode": 500,
+            "body": f"Error occurred: {str(e)}"
         }
