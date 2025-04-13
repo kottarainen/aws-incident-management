@@ -1,9 +1,31 @@
 import json
 import boto3
 import os
+import uuid
+from datetime import datetime
 
 s3 = boto3.client('s3')
 sns = boto3.client('sns')
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(os.environ["AUDIT_LOG_TABLE"])
+
+def log_audit_event(bucket_name, status, error=None):
+    try:
+        table.put_item(Item={
+            'incidentId': str(uuid.uuid4()),
+            'useCase': 'S3PublicAccess',
+            'resourceId': bucket_name,
+            'timestamp': datetime.utcnow().isoformat(),
+            'actionTaken': 'Revoke public S3 ACL',
+            'status': status,
+            'details': {
+                'region': os.environ.get("REGION", "unknown")
+            },
+            'errorMessage': error or ""
+        })
+        print("Audit event logged.")
+    except Exception as e:
+        print(f"Failed to log audit event: {str(e)}")
 
 def lambda_handler(event, context):
     print("Received event:", json.dumps(event))
@@ -33,6 +55,7 @@ def lambda_handler(event, context):
 
                 if not still_public:
                     print("Bucket is private and already auto-remediated. Skipping.")
+                    log_audit_event(bucket_name, "Skipped - already remediated")
                     return {
                         'statusCode': 200,
                         'body': "Already remediated and no public access present."
@@ -50,6 +73,7 @@ def lambda_handler(event, context):
 
         if not isinstance(grants, list):
             print("Unexpected format: 'Grant' is not a list.")
+            log_audit_event(bucket_name, "Skipped - unexpected grant format")
             return {
                 'statusCode': 200,
                 'body': "Grants format not as expected. Skipping."
@@ -83,6 +107,7 @@ def lambda_handler(event, context):
                     Message=f"S3 bucket {bucket_name} was made public and access was automatically revoked."
                 )
 
+                log_audit_event(bucket_name, "Success")
                 print("SNS notification sent.")
                 return {
                     'statusCode': 200,
@@ -90,6 +115,7 @@ def lambda_handler(event, context):
                 }
 
         print("No public access found. Nothing to do.")
+        log_audit_event(bucket_name, "Skipped - no public access")
         return {
             'statusCode': 200,
             'body': "No public grants found."
@@ -97,6 +123,7 @@ def lambda_handler(event, context):
 
     except Exception as e:
         print(f"Error: {str(e)}")
+        log_audit_event(bucket_name if 'bucket_name' in locals() else "unknown", "Failure", str(e))
         return {
             'statusCode': 500,
             'body': f"Error occurred: {str(e)}"
