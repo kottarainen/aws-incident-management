@@ -25,9 +25,9 @@ def log_audit_event(bucket_name, status, error=None):
 
     try:
         table.put_item(Item=log_item)
-        print("✅ Audit event logged.")
+        print("Audit event logged.")
     except Exception as e:
-        print(f"❌ Failed to log audit event: {str(e)}")
+        print(f"Failed to log audit event: {str(e)}")
 
 def lambda_handler(event, context):
     print("Received event:", json.dumps(event))
@@ -98,7 +98,7 @@ def lambda_handler(event, context):
                 )
 
                 log_audit_event(bucket_name, "Success")
-                print("✅ Remediation complete.")
+                print("Remediation complete.")
                 return {
                     'statusCode': 200,
                     'body': f"Bucket {bucket_name} access changed to private and notification sent."
