@@ -37,9 +37,16 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Resource = "*"
       },
       {
-        Effect = "Allow",
-        Action = ["sns:Publish"],
+        Effect   = "Allow",
+        Action   = ["sns:Publish"],
         Resource = var.sns_topic_arn
+      },
+      {
+        Effect   = "Allow",
+        Action = [
+          "dynamodb:PutItem"
+        ]
+        Resource = "arn:aws:dynamodb:eu-central-1:940482411533:table/incident-audit-log"
       }
     ]
   })
@@ -52,3 +59,5 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.public_ssh_detect.arn
 }
+
+data "aws_caller_identity" "current" {}

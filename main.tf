@@ -25,6 +25,7 @@ module "use_case_high_cpu_restart" {
   lambda_bucket         = var.lambda_bucket
   sns_topic_arn         = module.monitored_environment.incident_alerts_topic_arn
   monitored_bucket_name = module.monitored_environment.monitored_bucket_name
+  audit_log_table_name  = module.monitored_environment.audit_log_table_name
 }
 
 module "use_case_s3_public_access" {
@@ -33,6 +34,7 @@ module "use_case_s3_public_access" {
   lambda_bucket         = var.lambda_bucket
   sns_topic_arn         = module.monitored_environment.incident_alerts_topic_arn
   monitored_bucket_name = module.monitored_environment.monitored_bucket_name
+  audit_log_table_name  = module.monitored_environment.audit_log_table_name
 }
 
 module "use_case_ssh_ingress" {
@@ -41,4 +43,5 @@ module "use_case_ssh_ingress" {
   lambda_bucket         = var.lambda_bucket
   sns_topic_arn         = module.monitored_environment.incident_alerts_topic_arn
   monitored_bucket_name = module.monitored_environment.monitored_bucket_name
+  audit_log_table_name  = module.monitored_environment.audit_log_table_name
 }

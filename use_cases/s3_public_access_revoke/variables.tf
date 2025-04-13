@@ -23,3 +23,8 @@ variable "sns_topic_arn" {
 variable "monitored_bucket_name" {
   type = string
 }
+
+variable "audit_log_table_name" {
+  description = "Name of the DynamoDB audit log table"
+  type        = string
+}

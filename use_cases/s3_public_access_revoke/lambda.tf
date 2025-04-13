@@ -45,7 +45,15 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "sns:Publish"
         ],
         Resource = "arn:aws:sns:eu-central-1:${data.aws_caller_identity.current.account_id}:incident-alerts-topic"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "dynamodb:PutItem"
+        ]
+        Resource = "arn:aws:dynamodb:eu-central-1:${data.aws_caller_identity.current.account_id}:table/incident-audit-log"
       }
+
     ]
   })
 }
@@ -61,8 +69,9 @@ resource "aws_lambda_function" "revoke_s3_public_access" {
   timeout       = 10
   environment {
     variables = {
-      REGION        = var.aws_region
-      SNS_TOPIC_ARN = var.sns_topic_arn
+      REGION          = var.aws_region
+      SNS_TOPIC_ARN   = var.sns_topic_arn
+      AUDIT_LOG_TABLE = var.audit_log_table_name
     }
   }
 }

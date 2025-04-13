@@ -13,6 +13,7 @@ resource "aws_lambda_function" "revoke_ssh_access" {
     variables = {
       REGION        = var.aws_region
       SNS_TOPIC_ARN = var.sns_topic_arn
+      AUDIT_LOG_TABLE = var.audit_log_table_name
     }
   }
 }
