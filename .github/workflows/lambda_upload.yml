@@ -43,3 +43,15 @@ jobs:
           for zipfile in lambda_zips/*.zip; do
             aws s3 cp "$zipfile" s3://${{ secrets.LAMBDA_BUCKET_NAME }}/$(basename "$zipfile")
           done
+      
+      - name: Update Lambda Functions
+        run: |
+          for zipfile in lambda_zips/*.zip; do
+            name=$(basename "$zipfile" .zip)
+            aws lambda update-function-code \
+              --function-name ${name} \
+              --s3-bucket ${{ secrets.LAMBDA_BUCKET_NAME }} \
+              --s3-key $(basename "$zipfile") \
+              --publish
+          done
+        
