@@ -6,13 +6,12 @@ from datetime import datetime
 
 s3 = boto3.client('s3')
 sns = boto3.client('sns')
-dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table(os.environ["AUDIT_LOG_TABLE"])
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(os.environ['AUDIT_LOG_TABLE'])
 
 def log_audit_event(bucket_name, status, error=None):
     try:
-        print("🔍 Attempting to write audit event to DynamoDB...")
-        result = table.put_item(Item={
+        table.put_item(Item={
             'incidentId': str(uuid.uuid4()),
             'useCase': 'S3PublicAccess',
             'resourceId': bucket_name,
@@ -24,9 +23,9 @@ def log_audit_event(bucket_name, status, error=None):
             },
             'errorMessage': error or ""
         })
-        print("✅ DynamoDB write result:", result)
+        print("Audit event logged.")
     except Exception as e:
-        print(f"❌ DynamoDB write failed: {str(e)}")
+        print(f"Failed to log audit event: {str(e)}")
 
 def lambda_handler(event, context):
     print("Received event:", json.dumps(event))
@@ -35,7 +34,7 @@ def lambda_handler(event, context):
         bucket_name = event['detail']['requestParameters']['bucketName']
         print(f"Checking bucket: {bucket_name}")
 
-        # Check if this bucket was already remediated
+        # Check if already remediated
         is_already_remediated = False
         try:
             tags = s3.get_bucket_tagging(Bucket=bucket_name)['TagSet']
@@ -101,7 +100,7 @@ def lambda_handler(event, context):
                     }
                 )
 
-                # Publish SNS notification
+                # Notify via SNS
                 sns.publish(
                     TopicArn=os.environ['SNS_TOPIC_ARN'],
                     Subject="S3 Public Access Revoked",
@@ -116,7 +115,7 @@ def lambda_handler(event, context):
                 }
 
         print("No public access found. Nothing to do.")
-        log_audit_event(bucket_name, "Skipped - no public access")
+        log_audit_event(bucket_name, "Skipped - no public access found")
         return {
             'statusCode': 200,
             'body': "No public grants found."
