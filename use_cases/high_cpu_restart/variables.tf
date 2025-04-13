@@ -19,3 +19,7 @@ variable "sns_topic_arn" {
   description = "ARN of the shared SNS topic for incident alerts"
   type        = string
 }
+
+variable "monitored_bucket_name" {
+  type = string
+}

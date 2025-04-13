@@ -42,3 +42,19 @@ output "private_key" {
   value     = tls_private_key.my_key.private_key_pem
   sensitive = true
 }
+
+resource "aws_security_group" "test_ssh_sg" {
+  name        = "test_ssh_sg"
+  description = "SG for testing public SSH"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "TempTestSG"
+  }
+}

@@ -5,7 +5,7 @@ resource "random_string" "suffix" {
 }
 
 resource "aws_s3_bucket" "cloudtrail_logs" {
-  bucket = "cloudtrail-logs-${random_string.suffix.result}"
+  bucket        = "cloudtrail-logs-${random_string.suffix.result}"
   force_destroy = true
 }
 
@@ -19,6 +19,10 @@ resource "aws_cloudtrail" "main" {
   event_selector {
     read_write_type           = "All"
     include_management_events = true
+    data_resource {
+      type   = "AWS::S3::Object"
+      values = ["arn:aws:s3:::${var.monitored_bucket_name}/"]
+    }
   }
 
   depends_on = [aws_s3_bucket.cloudtrail_logs]
@@ -30,21 +34,21 @@ resource "aws_s3_bucket_policy" "cloudtrail_logs_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Sid       = "AWSCloudTrailAclCheck",
-        Effect    = "Allow",
+        Sid    = "AWSCloudTrailAclCheck",
+        Effect = "Allow",
         Principal = {
           Service = "cloudtrail.amazonaws.com"
         },
-        Action = "s3:GetBucketAcl",
+        Action   = "s3:GetBucketAcl",
         Resource = aws_s3_bucket.cloudtrail_logs.arn
       },
       {
-        Sid       = "AWSCloudTrailWrite",
-        Effect    = "Allow",
+        Sid    = "AWSCloudTrailWrite",
+        Effect = "Allow",
         Principal = {
           Service = "cloudtrail.amazonaws.com"
         },
-        Action = "s3:PutObject",
+        Action   = "s3:PutObject",
         Resource = "${aws_s3_bucket.cloudtrail_logs.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
         Condition = {
           StringEquals = {

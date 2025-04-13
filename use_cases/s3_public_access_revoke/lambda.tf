@@ -24,7 +24,9 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Effect = "Allow",
         Action = [
           "s3:PutBucketAcl",
-          "s3:GetBucketAcl"
+          "s3:GetBucketAcl",
+          "s3:GetBucketTagging",
+          "s3:PutBucketTagging"
         ],
         Resource = "*"
       },
@@ -36,6 +38,13 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "logs:PutLogEvents"
         ],
         Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "sns:Publish"
+        ],
+        Resource = "arn:aws:sns:eu-central-1:${data.aws_caller_identity.current.account_id}:incident-alerts-topic"
       }
     ]
   })
@@ -45,15 +54,15 @@ resource "aws_lambda_function" "revoke_s3_public_access" {
   function_name = "RevokeS3AccessLambda"
   handler       = "revoke_s3_access_lambda.lambda_handler"
   runtime       = "python3.9"
-  role          = aws_iam_role.lambda_exec_role.arn  
-  s3_bucket = var.lambda_bucket
-  s3_key    = "revoke_s3_access_lambda.zip"
-  memory_size      = 128
-  timeout          = 10
+  role          = aws_iam_role.lambda_exec_role.arn
+  s3_bucket     = var.lambda_bucket
+  s3_key        = "revoke_s3_access_lambda.zip"
+  memory_size   = 128
+  timeout       = 10
   environment {
-      variables = {
-      REGION = var.aws_region
-      SNS_TOPIC_ARN  = var.sns_topic_arn
-      }
+    variables = {
+      REGION        = var.aws_region
+      SNS_TOPIC_ARN = var.sns_topic_arn
     }
+  }
 }
