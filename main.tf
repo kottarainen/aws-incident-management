@@ -45,3 +45,12 @@ module "use_case_ssh_ingress" {
   monitored_bucket_name = module.monitored_environment.monitored_bucket_name
   audit_log_table_name  = module.monitored_environment.audit_log_table_name
 }
+
+module "use_case_ec2_failure_recover" {
+  source                = "./use_cases/ec2_failure_recover"
+  sns_email             = var.sns_email
+  lambda_bucket         = var.lambda_bucket
+  sns_topic_arn         = module.monitored_environment.incident_alerts_topic_arn
+  monitored_bucket_name = module.monitored_environment.monitored_bucket_name
+  audit_log_table_name  = module.monitored_environment.audit_log_table_name
+}

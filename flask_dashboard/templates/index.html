@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Incident Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Incident Audit Dashboard</h1>
+
+    <div class="controls">
+        <label for="statusFilter">Filter by Status:</label>
+        <select id="statusFilter" onchange="filterTable()">
+            <option value="All">All</option>
+            <option value="Success">Success</option>
+            <option value="Failure">Failure</option>
+            <option value="Skipped">Skipped</option>
+        </select>
+
+        <button onclick="downloadCSV()">Export CSV</button>
+        <button onclick="window.print()">Save as PDF</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="incidentTable">
+            <thead>
+            <tr>
+                <th>Time</th>
+                <th>Use Case</th>
+                <th>Resource</th>
+                <th>Action</th>
+                <th>Status</th>
+                <th>Error</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.timestamp }}</td>
+                    <td>{{ item.useCase }}</td>
+                    <td>{{ item.resourceId }}</td>
+                    <td>{{ item.actionTaken }}</td>
+                    <td class="status {{ item.status|lower }}">{{ item.status }}</td>
+                    <td>
+                        <div class="error-container">
+                            <span class="error-preview">{{ item.errorMessage[:100] }}{% if item.errorMessage|length > 100 %}...{% endif %}</span>
+                            {% if item.errorMessage|length > 100 %}
+                            <span class="toggle-error" onclick="toggleError(this)">Show more</span>
+                            <div class="error-full hidden">{{ item.errorMessage }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        const filter = document.getElementById("statusFilter").value.toLowerCase();
+        const rows = document.querySelectorAll("#incidentTable tbody tr");
+
+        rows.forEach(row => {
+            const statusCell = row.querySelector(".status");
+            row.style.display = (filter === "all" || statusCell.classList.contains(filter)) ? "" : "none";
+        });
+    }
+
+    function downloadCSV() {
+        const rows = document.querySelectorAll("table tr");
+        let csv = [];
+
+        rows.forEach(row => {
+            const cols = row.querySelectorAll("td, th");
+            const rowData = Array.from(cols).map(col => `"${col.innerText.replace(/"/g, '""')}"`);
+            csv.push(rowData.join(","));
+        });
+
+        const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "incident_audit_log.csv";
+        link.click();
+    }
+
+    function toggleError(element) {
+        const full = element.nextElementSibling;
+        const preview = element.previousElementSibling;
+        const expanded = !full.classList.contains("hidden");
+
+        if (expanded) {
+            full.classList.add("hidden");
+            preview.style.display = "inline";
+            element.textContent = "Show more";
+        } else {
+            full.classList.remove("hidden");
+            preview.style.display = "none";
+            element.textContent = "Show less";
+        }
+    }
+</script>
+</body>
+</html>

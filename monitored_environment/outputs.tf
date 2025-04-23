@@ -9,3 +9,7 @@ output "monitored_bucket_name" {
 output "audit_log_table_name" {
   value = aws_dynamodb_table.incident_audit_log.name
 }
+
+output "monitoring_instance_id" {
+  value = aws_instance.monitoring_instance.id
+}
