@@ -52,6 +52,7 @@ jobs:
             ["revoke_s3_access_lambda"]="RevokeS3AccessLambda"
             ["revoke_ssh_lambda"]="RevokeSSHAccessLambda"
             ["recover_ec2_lambda"]="RecoverEC2InstanceLambda"
+            ["memory_test_lambda"]="MemoryTestLambda"
           )
         
           for zipfile in lambda_zips/*.zip; do
