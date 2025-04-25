@@ -24,12 +24,13 @@ variable "monitored_bucket_name" {
   type = string
 }
 
-variable "db_password" {
-  description = "DB admin password"
-  sensitive   = true
+variable "audit_log_table_name" {
+  description = "Name of the DynamoDB audit log table"
+  type        = string
 }
 
 variable "db_instance_identifier" {
   description = "Identifier of the RDS DB instance to monitor"
   type        = string
 }
+
