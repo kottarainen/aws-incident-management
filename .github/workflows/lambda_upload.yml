@@ -57,6 +57,7 @@ jobs:
             ["check_db_status"]="CheckRDSStatus"
             ["start_rds_instance"]="StartRDSInstance"
             ["alert_failure"]="AlertFailure"
+            [poll_rds_alarm_lambda]="PollRDSAlarmLambda"
           )
         
           for zipfile in lambda_zips/*.zip; do
