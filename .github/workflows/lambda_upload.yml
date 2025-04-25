@@ -54,6 +54,9 @@ jobs:
             ["recover_ec2_lambda"]="RecoverEC2InstanceLambda"
             ["increase_memory_lambda"]="IncreaseMemoryLambda"
             ["memory_test_lambda"]="MemoryTestLambda"
+            ["check_db_status"]="CheckRDSStatus"
+            ["start_rds_instance"]="StartRDSInstance"
+            ["alert_failure"]="AlertFailure"
           )
         
           for zipfile in lambda_zips/*.zip; do
