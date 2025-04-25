@@ -54,3 +54,14 @@ module "use_case_ec2_failure_recover" {
   monitored_bucket_name = module.monitored_environment.monitored_bucket_name
   audit_log_table_name  = module.monitored_environment.audit_log_table_name
 }
+
+module "use_case_lambda_memory" {
+  source                = "./use_cases/lambda_memory"
+  sns_email             = var.sns_email
+  lambda_bucket         = var.lambda_bucket
+  sns_topic_arn         = module.monitored_environment.incident_alerts_topic_arn
+  monitored_bucket_name = module.monitored_environment.monitored_bucket_name
+  audit_log_table_name  = module.monitored_environment.audit_log_table_name
+  test_lambda_name      = "MemoryTestLambda"
+
+}
