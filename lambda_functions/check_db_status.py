@@ -4,7 +4,7 @@ import os
 rds = boto3.client('rds')
 
 def lambda_handler(event, context):
-    db_instance_id = os.environ['DB_INSTANCE_IDENTIFIER']
+    db_instance_id = os.environ['DB_INSTANCE_ID']
 
     try:
         response = rds.describe_db_instances(DBInstanceIdentifier=db_instance_id)
