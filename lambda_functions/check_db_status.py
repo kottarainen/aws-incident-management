@@ -4,14 +4,25 @@ import os
 rds = boto3.client('rds')
 
 def lambda_handler(event, context):
-    db_instance_id = os.environ['DB_INSTANCE_ID']
+    db_instance_id = os.environ['DB_INSTANCE_IDENTIFIER']
 
     try:
         response = rds.describe_db_instances(DBInstanceIdentifier=db_instance_id)
         status = response['DBInstances'][0]['DBInstanceStatus']
-        print(f"DB instance status: {status}")
-        return {"status": status}
-        
+        print(f"Current DB status: {status}")
+
+        # Handle different statuses
+        if status == "available":
+            return {"status": "available"}
+        elif status == "stopped":
+            return {"status": "stopped"}
+        elif status == "starting":
+            return {"status": "starting"}
+        elif status == "stopping":
+            return {"status": "stopping"}
+        else:
+            return {"status": "unknown"}
+
     except Exception as e:
-        print(f"Error checking DB status: {str(e)}")
-        return {"status": "unknown", "error": str(e)}
+        print(f"Error checking RDS status: {str(e)}")
+        raise e
