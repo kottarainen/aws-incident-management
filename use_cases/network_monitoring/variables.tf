@@ -15,9 +15,18 @@ variable "lambda_bucket" {
   type        = string
 }
 
-variable "db_password" {
-  description = "DB admin password"
-  sensitive   = true
+variable "sns_topic_arn" {
+  description = "ARN of the shared SNS topic for incident alerts"
+  type        = string
+}
+
+variable "monitored_bucket_name" {
+  type = string
+}
+
+variable "audit_log_table_name" {
+  description = "Name of the DynamoDB audit log table"
+  type        = string
 }
 
 variable "db_instance_identifier" {

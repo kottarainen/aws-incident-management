@@ -76,3 +76,14 @@ module "use_case_rds_recovery" {
   audit_log_table_name   = module.monitored_environment.audit_log_table_name
   db_instance_identifier = var.db_instance_identifier
 }
+
+module "use_case_network_monitoring" {
+  source                = "./use_cases/network_monitoring"
+  sns_email             = var.sns_email
+  lambda_bucket         = var.lambda_bucket
+  sns_topic_arn         = module.monitored_environment.incident_alerts_topic_arn
+  monitored_bucket_name = module.monitored_environment.monitored_bucket_name
+  audit_log_table_name  = module.monitored_environment.audit_log_table_name
+  db_instance_identifier = var.db_instance_identifier
+  instance_id           = var.instance_id
+}
