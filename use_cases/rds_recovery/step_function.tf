@@ -8,18 +8,33 @@ resource "aws_sfn_state_machine" "rds_recovery_sfn" {
       "Check RDS" = {
         Type = "Task",
         Resource = aws_lambda_function.check_db_status.arn,
-        Next = "Is RDS Available?"
+        Next = "Evaluate Status"
       },
-      "Is RDS Available?" = {
+      "Evaluate Status" = {
         Type = "Choice",
         Choices = [
           {
             Variable = "$.status",
             StringEquals = "available",
             Next = "Success"
+          },
+                    {
+            Variable = "$.status",
+            StringEquals = "starting",
+            Next = "Wait 2 Minutes"
+          },
+                    {
+            Variable = "$.status",
+            StringEquals = "stopping",
+            Next = "Wait 2 Minutes"
+          },
+                    {
+            Variable = "$.status",
+            StringEquals = "stopped",
+            Next = "Start RDS"
           }
         ],
-        Default = "Start RDS"
+        Default = "Alert Failure"
       },
       "Start RDS" = {
         Type = "Task",
@@ -34,18 +49,7 @@ resource "aws_sfn_state_machine" "rds_recovery_sfn" {
       "Recheck RDS" = {
         Type = "Task",
         Resource = aws_lambda_function.check_db_status.arn,
-        Next = "Is RDS Available After Restart?"
-      },
-      "Is RDS Available After Restart?" = {
-        Type = "Choice",
-        Choices = [
-          {
-            Variable = "$.status",
-            StringEquals = "available",
-            Next = "Success"
-          }
-        ],
-        Default = "Alert Failure"
+        Next = "Evaluate Status"
       },
       "Alert Failure" = {
         Type = "Task",

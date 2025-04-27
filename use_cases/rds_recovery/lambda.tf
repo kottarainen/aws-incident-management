@@ -11,6 +11,7 @@ resource "aws_lambda_function" "check_db_status" {
     variables = {
       DB_INSTANCE_ID = var.db_instance_identifier
       REGION         = var.aws_region
+      SNS_TOPIC_ARN = var.sns_topic_arn
     }
   }
 }
@@ -28,6 +29,7 @@ resource "aws_lambda_function" "start_rds_instance" {
     variables = {
       DB_INSTANCE_ID = var.db_instance_identifier
       REGION         = var.aws_region
+      SNS_TOPIC_ARN = var.sns_topic_arn
     }
   }
 }
@@ -45,6 +47,27 @@ resource "aws_lambda_function" "alert_failure" {
     variables = {
       DB_INSTANCE_ID = var.db_instance_identifier
       REGION         = var.aws_region
+      SNS_TOPIC_ARN = var.sns_topic_arn
     }
   }
 }
+
+resource "aws_lambda_function" "poll_rds_alarm_lambda" {
+  function_name = "PollRDSAlarmLambda"
+  role          = aws_iam_role.rds_recovery_lambda_exec.arn
+  handler       = "poll_rds_alarm_lambda.lambda_handler"
+  runtime       = "python3.9"
+
+  s3_bucket = var.lambda_bucket
+  s3_key    = "poll_rds_alarm_lambda.zip"
+  timeout   = 10
+
+  environment {
+    variables = {
+      ALARM_NAME = aws_cloudwatch_metric_alarm.rds_connection_alarm.alarm_name
+      SFN_ARN    = aws_sfn_state_machine.rds_recovery_sfn.arn
+      SNS_TOPIC_ARN = var.sns_topic_arn
+    }
+  }
+}
+
