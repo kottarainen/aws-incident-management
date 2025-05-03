@@ -22,14 +22,12 @@
         rule: allow
         port: 22
         proto: tcp
-- name: Download and install CloudWatch Agent
-  hosts: ubuntu
-  become: yes
-  tasks:
+
     - name: Install CloudWatch Agent
       shell: |
         curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
         sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+        
     - name: Enable and start CloudWatch Agent
       systemd:
         name: amazon-cloudwatch-agent

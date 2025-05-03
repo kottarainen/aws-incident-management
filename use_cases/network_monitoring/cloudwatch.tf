@@ -6,8 +6,8 @@ resource "aws_cloudwatch_metric_alarm" "high_network_in_alarm" {
   namespace           = "AWS/EC2"
   period              = 60
   statistic           = "Average"
-  threshold           = 1
-  alarm_description   = "Triggers when NetworkIn exceeds 10MB over 2 minutes on EC2"
+  threshold           = 10000
+  alarm_description   = "Triggers when NetworkIn exceeds ... over 2 minutes on EC2"
   dimensions = {
     InstanceId = var.instance_id
   }
