@@ -52,13 +52,16 @@ jobs:
             ["revoke_s3_access_lambda"]="RevokeS3AccessLambda"
             ["revoke_ssh_lambda"]="RevokeSSHAccessLambda"
             ["recover_ec2_lambda"]="RecoverEC2InstanceLambda"
-            ["increase_memory_lambda"]="IncreaseMemoryLambda"
             ["memory_test_lambda"]="MemoryTestLambda"
             ["check_db_status"]="CheckRDSStatus"
             ["start_rds_instance"]="StartRDSInstance"
             ["alert_failure"]="AlertFailure"
             ["poll_rds_alarm_lambda"]="PollRDSAlarmLambda"
             ["network_alarm_handler"]="NetworkAlarmHandler"
+            ["check_memory_lambda"]="CheckMemoryLambda"
+            ["update_memory_lambda"]="UpdateMemoryLambda"
+            ["log_result_lambda"]="LogResultLambda"
+            ["notify_admin_lambda"]="NotifyAdminLambda"
           )
         
           for zipfile in lambda_zips/*.zip; do
