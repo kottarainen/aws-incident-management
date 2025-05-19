@@ -1,4 +1,3 @@
-# === ALARM 1: High Network In ===
 resource "aws_cloudwatch_metric_alarm" "high_network_in_alarm" {
   alarm_name          = "HighNetworkInTraffic"
   comparison_operator = "GreaterThanThreshold"
@@ -36,8 +35,6 @@ resource "aws_cloudwatch_event_target" "high_network_alarm_target" {
   arn       = aws_lambda_function.network_alarm_handler.arn
   role_arn  = aws_iam_role.eventbridge_invoke_network_lambda_role.arn
 }
-
-# === ALARM 2: Low Network Out ===
 resource "aws_cloudwatch_metric_alarm" "low_network_out_alarm" {
   alarm_name          = "LowNetworkOutTraffic"
   comparison_operator = "LessThanThreshold"
@@ -76,7 +73,7 @@ resource "aws_cloudwatch_event_target" "low_network_alarm_target" {
   role_arn  = aws_iam_role.eventbridge_invoke_network_lambda_role.arn
 }
 
-# === IAM Role + Policy (shared by both) ===
+# shared IAM role and policy
 resource "aws_iam_role" "eventbridge_invoke_network_lambda_role" {
   name = "eventbridge-network-lambda-trigger-role"
 
