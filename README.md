@@ -1,6 +1,6 @@
 # Serverless Incident Management System (Bachelor Thesis Project)
 
-This project was developed as part of my Bachelor's thesis at **Vilnius Gediminas Technical University**. It is a **serverless, event-driven incident management system** designed to detect and automatically remediate availability, performance, and security incidents in AWS environments.
+This project was developed as part of my Bachelor's thesis at **VilniusTech**. It is a **serverless, event-driven incident management system** designed to detect and automatically remediate availability, performance, and security incidents in AWS environments.
 
 ## Project Highlights
 
@@ -20,7 +20,7 @@ This project was developed as part of my Bachelor's thesis at **Vilnius Gedimina
 
 ## System Architecture
 
-*Architecture diagram *  - TODO
+![Architecture Diagram](docs/architecture.png)
 
 
 ## Live Dashboard
